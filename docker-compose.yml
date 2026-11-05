@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      BOOKIE_CORS_ORIGINS: ${BOOKIE_CORS_ORIGINS:-http://localhost:3000}
+      BOOKIE_LLM_PROVIDER: ${BOOKIE_LLM_PROVIDER:-openai-compatible}
+      BOOKIE_LLM_API_KEY: ${BOOKIE_LLM_API_KEY:-}
+      BOOKIE_LLM_MODEL: ${BOOKIE_LLM_MODEL:-gpt-4o-mini}
+      BOOKIE_LLM_BASE_URL: ${BOOKIE_LLM_BASE_URL:-https://api.openai.com/v1}
+      BOOKIE_LLM_TIMEOUT: ${BOOKIE_LLM_TIMEOUT:-25}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

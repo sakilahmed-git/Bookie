@@ -167,6 +167,28 @@ Import a document or paste text
 | Configuration | python-dotenv |
 | Testing | pytest, httpx |
 
+## 🐳 One-command launch with Docker
+
+The quickest way to run the complete app is Docker Compose. It starts the API and web app together, installs the trained spaCy English model in the backend image, and exposes health checks.
+
+**Prerequisite:** Docker Desktop (Windows/macOS) or Docker Engine with the Compose plugin (Linux).
+
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+Then open:
+
+- **Bookie:** http://localhost:3000
+- **API health:** http://localhost:8000/health
+- **Interactive API docs:** http://localhost:8000/docs
+
+Stop the app with `Ctrl+C`; remove the containers with `docker compose down`. The default setup keeps uploaded documents in memory and does not configure a cloud database or account system.
+
+To use the optional AI tutor, set `BOOKIE_LLM_API_KEY` in your shell before starting Compose. You can also configure `BOOKIE_LLM_MODEL`, `BOOKIE_LLM_BASE_URL`, and `BOOKIE_LLM_PROVIDER`. Without a key, the source-retrieval tutor remains available. For a hosted deployment, set `NEXT_PUBLIC_API_URL` to the public API URL at frontend build time and `BOOKIE_CORS_ORIGINS` to the exact frontend origin(s), comma-separated.
+
 ## ⚡ Get started
 
 Run Bookie locally with the frontend and backend in separate terminals.
