@@ -12,7 +12,7 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 app = FastAPI(
     title="Bookie NLP API",
     description="Language analysis and study-material services for Bookie.",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 app.add_middleware(
@@ -26,6 +26,10 @@ app.add_middleware(
 
 class TextRequest(BaseModel):
     text: str = Field(min_length=20, max_length=50_000)
+
+
+class StudyRequest(TextRequest):
+    difficulty: str = Field(default="intermediate", pattern="^(beginner|intermediate|advanced)$")
 
 
 @app.get("/")
@@ -78,10 +82,10 @@ async def extract_document(file: UploadFile = File(...)) -> dict[str, object]:
 
 
 @app.post("/api/v1/study")
-def create_study_pack(request: TextRequest) -> dict[str, object]:
+def create_study_pack(request: StudyRequest) -> dict[str, object]:
     try:
         analysis = engine.analyze(request.text)
-        return build_study_pack(request.text, analysis)
+        return build_study_pack(request.text, analysis, request.difficulty)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:

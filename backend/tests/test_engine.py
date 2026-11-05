@@ -53,7 +53,32 @@ def test_study_pack_is_grounded_in_source_sentences() -> None:
     )
     result = build_study_pack(source, engine.analyze(source))
     assert result["notes"]
+    assert result["concepts"]
     assert all(note["text"] in source for note in result["notes"])
+    assert all(concept["context"] in source for concept in result["concepts"])
     assert result["flashcards"]
     assert all(card["back"] in source for card in result["flashcards"])
-    assert all(question["answer"].lower() in question["explanation"].lower() for question in result["quiz"])
+    assert all(question["source_sentence"] in source for question in result["quiz"])
+
+
+def test_study_pack_difficulty_changes_question_count() -> None:
+    engine = BookieNLPEngine(prefer_model=False)
+    source = (
+        "Machine learning studies patterns in data. "
+        "Machine learning models use data to make predictions. "
+        "Natural language processing analyses human language. "
+        "Language models transform information into useful outputs."
+    )
+    analysis = engine.analyze(source)
+    beginner = build_study_pack(source, analysis, "beginner")
+    advanced = build_study_pack(source, analysis, "advanced")
+    assert beginner["difficulty"] == "beginner"
+    assert advanced["difficulty"] == "advanced"
+    assert len(advanced["quiz"]) >= len(beginner["quiz"])
+
+
+def test_study_pack_rejects_unknown_difficulty() -> None:
+    engine = BookieNLPEngine(prefer_model=False)
+    source = "Machine learning studies patterns in data. It can help analyse information."
+    with pytest.raises(ValueError, match="Difficulty"):
+        build_study_pack(source, engine.analyze(source), "expert")
