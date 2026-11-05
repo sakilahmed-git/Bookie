@@ -72,7 +72,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
       if (!response.ok) throw new Error(result.detail || "Document extraction failed.");
       onTextChange(result.text);
       setFilename(result.filename);
-      if (result.truncated) setError("The document was shortened to 50,000 characters for this MVP.");
+      if (result.truncated) setError("The document was shortened to 50,000 characters for this session.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read this document.");
     } finally {
@@ -154,10 +154,10 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
   }
 
   return (
-    <section id="study" className="mt-11 scroll-mt-24">
+    <section id="study" className="study-workspace mt-11 scroll-mt-24">
       <div className="mb-4">
-        <p className="text-[10px] font-bold uppercase tracking-[1.6px] text-[#9B98AB]">Turn reading into recall</p>
-        <h2 className="mt-1 text-xl font-extrabold tracking-[-.7px] text-ink">Your study space</h2>
+        <p className="text-[10px] font-bold uppercase tracking-[1.6px] text-[#9B98AB]">TURN UNDERSTANDING INTO RECALL</p>
+        <h2 className="mt-1 text-xl font-extrabold tracking-[-.7px] text-ink">Your learning workspace</h2>
         <p className="mt-1 text-xs text-[#858397]">Understand key terms, practise retrieval, and ask questions about your material.</p>
       </div>
       <div className="panel rounded-[22px] p-5 sm:p-6">
@@ -165,7 +165,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
           <div className="flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-[#F0EDFF] text-[#7668E8]"><GraduationCap size={21} /></span>
             <div>
-              <h3 className="text-sm font-extrabold text-ink">Build a smarter study pack</h3>
+              <h3 className="text-sm font-extrabold text-ink">Build your study pack</h3>
               <p className="mt-1 text-[10px] text-[#9694A6]">All concepts and answers are traceable to your source.</p>
             </div>
           </div>
