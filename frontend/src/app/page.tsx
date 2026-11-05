@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import StudyWorkspace from "./StudyWorkspace";
 import {
   ArrowRight,
   BookOpen,
@@ -466,6 +467,8 @@ export default function Home() {
                 )}
               </div>
             </section>
+
+            <StudyWorkspace text={text} onTextChange={setText} apiUrl={apiUrl} />
 
             <footer className="mt-12 flex flex-col justify-between gap-3 border-t border-[#ECEAF3] pt-6 text-[10px] text-[#A09EAE] sm:flex-row">
               <span>bookie. · Knowledge, transformed beautifully.</span>
