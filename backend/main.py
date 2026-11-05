@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
