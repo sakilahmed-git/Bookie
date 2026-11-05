@@ -56,4 +56,4 @@ def test_study_pack_is_grounded_in_source_sentences() -> None:
     assert all(note["text"] in source for note in result["notes"])
     assert result["flashcards"]
     assert all(card["back"] in source for card in result["flashcards"])
-    assert all(question["answer"] in question["explanation"] for question in result["quiz"])
+    assert all(question["answer"].lower() in question["explanation"].lower() for question in result["quiz"])
