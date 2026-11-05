@@ -52,7 +52,7 @@ const navigation = [
   { label: "Overview", icon: BookOpen, active: true, href: "#overview" },
   { label: "NLP Laboratory", icon: FlaskConical, href: "#analysis" },
   { label: "Understand", icon: Lightbulb, href: "#modes" },
-  { label: "Study", icon: GraduationCap, href: "#modes" },
+  { label: "Study", icon: GraduationCap, href: "#study" },
   { label: "Play & challenge", icon: Gamepad2, href: "#modes" },
   { label: "Knowledge explorer", icon: Network, href: "#modes" },
 ];
@@ -290,7 +290,7 @@ export default function Home() {
                 {modes.map(({ title, description, icon: Icon, tone, tag }) => (
                   <a
                     key={title}
-                    href="#analysis"
+                    href={title === "Study" ? "#study" : "#analysis"}
                     className="panel group rounded-2xl p-4 transition duration-200 hover:-translate-y-1 hover:shadow-soft"
                   >
                     <div className="mb-5 flex items-center justify-between">

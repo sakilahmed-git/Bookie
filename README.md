@@ -2,77 +2,101 @@
 
 **Understand it. Transform it. Master it.**
 
-Bookie is an NLP-powered content transformation platform for turning dense text and documents into clear explanations, study materials, interactive knowledge checks, and reusable content.
+Bookie is an NLP-powered content transformation and learning platform. Bring your notes, articles, or documents and turn them into inspectable language analysis and source-grounded study material.
 
 > Course project: **CSE472 — Natural Language Processing**  
 > Project title: **P26 — Automated Content Transformation Platform**
 
-## Product direction
+## Product experience
 
-Bookie is designed around what a person wants to do with information:
+- **Understand:** inspect language patterns and important concepts.
+- **Study:** extract revision notes, flip-through flashcards, and knowledge checks.
+- **Play:** practise with short challenges (planned).
+- **Explore:** discover entities, topics, and semantic relationships (planned).
+- **Create:** repurpose source material into useful content (planned).
 
-- **Understand** — simplify difficult passages and surface key ideas.
-- **Study** — turn source material into notes, flashcards, and quizzes.
-- **Play** — practise knowledge through short challenges.
-- **Explore** — discover entities, topics, and relationships.
-- **Create** — repurpose source material into useful content.
+## Current MVP
 
-The platform is NLP-first: preprocessing, linguistic analysis, feature extraction, semantic analysis, transformation, and evaluation are explicit parts of the system—not hidden behind a generic chat interface.
+### Document ingestion
+- Upload UTF-8 TXT, Markdown, PDF, or DOCX.
+- 10 MB upload limit; extracted text is capped at 50,000 characters.
+- PDF and DOCX are parsed in memory; uploads are not written to disk.
+- Scanned/image-only PDFs need OCR and are not supported yet.
+
+### NLP laboratory
+- Sentence segmentation and tokenisation
+- Lemmas, POS tags, fine-grained tags, and stop-word flags
+- Named entity recognition
+- Sentence-level TF-IDF keyword salience
+- Document statistics and model availability information
+
+### Study workspace
+- Revision notes made from original source sentences
+- Flashcards whose answers quote the source
+- Fill-in-the-blank multiple-choice questions based on source sentences
+- Immediate answer feedback and score
+
+Study pack generation is extractive and deterministic in this MVP. It does not claim to produce independently verified explanations or pedagogically validated questions. TF-IDF scores are within-document salience, not corpus-wide importance.
 
 ## Repository structure
 
-```text
+~~~text
 bookie/
 ├── backend/
 │   ├── nlp/
+│   │   ├── document_loader.py
+│   │   ├── engine.py
+│   │   └── study.py
 │   ├── tests/
 │   ├── main.py
 │   └── requirements.txt
 ├── frontend/
-│   ├── src/app/
-│   └── package.json
+│   └── src/app/
 └── docs/
-```
+~~~
 
 ## Getting started
 
 ### Backend (Python 3.12 recommended)
 
-```powershell
+~~~powershell
 cd backend
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 python -m uvicorn main:app --reload --port 8000
-```
+~~~
 
-API documentation: http://localhost:8000/docs
+API docs: http://localhost:8000/docs
 
 ### Frontend (Node.js 20+)
 
-```powershell
+~~~powershell
 cd frontend
 npm install
 Copy-Item .env.example .env.local
 npm run dev
-```
+~~~
 
-Open http://localhost:3000.
+Open http://localhost:3000. Set NEXT_PUBLIC_API_URL in .env.local if the API is hosted elsewhere.
 
-Set `NEXT_PUBLIC_API_URL` in `.env.local` if the backend is not running at http://localhost:8000.
+### Tests
 
-## Initial NLP capabilities
+~~~powershell
+cd backend
+pytest -q
+~~~
 
-The first analysis endpoint provides:
+## API
 
-- sentence segmentation and tokenisation
-- lemmas, POS tags, fine-grained tags, and stop-word flags
-- named entity recognition
-- sentence-level TF-IDF keyword extraction
-- document statistics and model availability information
-
-TF-IDF is calculated across the input's sentences. For a single-sentence input, term scores are not meaningfully discriminative; the API reports this limitation.
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | / | Service identity |
+| GET | /health | NLP model status |
+| POST | /api/v1/analyze | Linguistic analysis |
+| POST | /api/v1/documents/extract | Extract text from a supported document |
+| POST | /api/v1/study | Generate notes, flashcards, and quiz |
 
 ## Development principles
 
@@ -80,8 +104,4 @@ TF-IDF is calculated across the input's sentences. For a single-sentence input, 
 - Real outputs over placeholder metrics.
 - Modular NLP components with testable behaviour.
 - Explainable intermediate results for academic demonstration.
-- Model downloads are kept out of the source repository.
-
-## Academic note
-
-Pretrained spaCy pipelines are used for linguistic annotation and entity recognition. The project also exposes the processing results so that NLP concepts can be inspected and evaluated. Additional transformations and evaluation metrics will be introduced incrementally.
+- Keep uploaded documents and model artifacts out of Git.

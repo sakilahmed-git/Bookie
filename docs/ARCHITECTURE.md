@@ -1,52 +1,60 @@
-# Bookie — Initial Architecture
+# Bookie — Architecture
 
 ## System boundaries
 
-- **Next.js frontend:** user experience, document input, analysis visualisation, and learning interactions.
-- **FastAPI backend:** validation, API contracts, and orchestration of NLP services.
-- **NLP engine:** preprocessing, linguistic annotation, feature extraction, semantic operations, transformation, and evaluation.
-- **PostgreSQL (planned):** users, documents, processing runs, generated assets, quiz attempts, and evaluation results.
+- **Next.js frontend:** workspace, document upload, analysis visualisation, flashcards, and quiz interactions.
+- **FastAPI backend:** validation, upload limits, API contracts, and orchestration.
+- **Document loader:** in-memory extraction for TXT, Markdown, PDF, and DOCX.
+- **NLP engine:** spaCy linguistic annotation and scikit-learn TF-IDF.
+- **Study pack builder:** deterministic, extractive revision notes, flashcards, and fill-in-the-blank MCQs.
+- **PostgreSQL (planned):** accounts, source documents, processing runs, study packs, and learning progress.
 
-## Initial analysis request
+## Current flows
 
-```text
-Browser
+### Document ingestion
+
+~~~text
+Browser File
+  | multipart/form-data
+  v
+FastAPI upload endpoint
+  | 10 MB guard
+  v
+In-memory format parser (TXT / MD / PDF / DOCX)
+  | max 50,000 extracted characters
+  v
+Frontend source-text editor
+~~~
+
+### Analysis and study
+
+~~~text
+Source text
+  |-- POST /api/v1/analyze --> spaCy + TF-IDF --> token/entity/keyword results
   |
-  | POST /api/v1/analyze { text }
-  v
-FastAPI validation
-  |
-  v
-BookieNLPEngine
-  |-- spaCy: sentence boundaries, tokens, lemmas, POS, entities
-  |-- scikit-learn: sentence-level TF-IDF
-  v
-Structured JSON response
-  |
-  v
-Frontend result tabs: Tokens / Entities / Keywords
-```
+  `-- POST /api/v1/study ----> NLP analysis --> source-grounded notes/cards/quiz
+~~~
 
 ## API
 
-- `GET /` — service identity and status
-- `GET /health` — NLP model and pipeline status
-- `POST /api/v1/analyze` — linguistic analysis of text
+- GET / — service identity
+- GET /health — model and pipeline status
+- POST /api/v1/analyze — linguistic analysis
+- POST /api/v1/documents/extract — document text extraction
+- POST /api/v1/study — source-grounded study pack generation
 
-## Design principles
+## Trust and safety boundaries
 
-- Keep the NLP engine independent from FastAPI routes.
-- Make intermediate processing results visible for academic demonstration.
-- Validate input size and return actionable errors.
-- Keep model artifacts out of Git.
-- Make expensive transformer models optional until a feature requires them.
-- Evaluate generated transformations instead of treating generation as proof of quality.
+- Uploaded bytes are read in memory and are not persisted.
+- Upload size is capped at 10 MB; extracted text is capped at 50,000 characters.
+- Only explicit file extensions are accepted; scanned PDFs are not OCR'd.
+- Study material is extractive and always exposes its source sentence. It is not represented as a verified explanation.
+- Model files and user documents must not be committed to the repository.
 
 ## Planned evolution
 
-1. Text and linguistic analysis
-2. Keyword, topic, and classification tools
-3. Understand and Study transformations
-4. Quiz and flashcard generation
-5. Semantic similarity and knowledge exploration
-6. Evaluation and comparative experiments
+1. Add OCR with an explicit opt-in for scanned PDFs.
+2. Improve concept selection and distractor quality; evaluate against human-authored study sets.
+3. Add semantic similarity and topic modelling.
+4. Add persisted document libraries and user progress.
+5. Add generative explanations with citations to source spans and evaluation.
