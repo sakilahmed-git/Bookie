@@ -43,7 +43,7 @@ Bookie is an NLP-powered content transformation and learning platform. Bring you
 - If no relevant evidence is found, Bookie explicitly declines to answer.
 - Retrieval mode is local and does not require an external AI API key.
 
-The tutor is a retrieval-based learning aid, not a generative LLM. It quotes and assembles relevant source sentences; it does not infer facts absent from the material. TF-IDF relevance is lexical matching, not transformer-based semantic similarity. Study hints are prompts for reflection, not generated factual definitions.
+The tutor first retrieves relevant source sentences with TF-IDF, then can optionally ask a configured LLM to explain only those passages. It declines when no evidence is found and falls back to retrieved passages if the provider is unavailable. Without an API key, it remains a local retrieval tutor. TF-IDF relevance is lexical matching, not transformer-based semantic similarity. Study hints are prompts for reflection, not generated factual definitions.
 
 ## Repository structure
 

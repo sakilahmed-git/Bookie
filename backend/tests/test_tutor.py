@@ -69,3 +69,31 @@ def test_llm_failure_falls_back_to_source_passages(monkeypatch) -> None:
     assert result["mode"] == "retrieval-fallback"
     assert result["evidence"]
     assert "unavailable" in result["message"]
+
+
+def test_llm_request_uses_configured_model_and_retrieved_passages(monkeypatch) -> None:
+    tutor = SourceTutor()
+    tutor.api_key = "test-key"
+    tutor.model = "bookie-test-model"
+    tutor.base_url = "https://llm.example/v1"
+    captured = {}
+
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"choices": [{"message": {"content": "Chlorophyll absorbs sunlight [2]."}}]}
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured.update(kwargs)
+        return FakeResponse()
+
+    monkeypatch.setattr("nlp.tutor.httpx.post", fake_post)
+    result = tutor.answer("What does chlorophyll do?", SOURCE, "advanced")
+    assert result["mode"] == "llm-grounded"
+    assert captured["url"] == "https://llm.example/v1/chat/completions"
+    assert captured["headers"]["Authorization"] == "Bearer test-key"
+    assert captured["json"]["model"] == "bookie-test-model"
+    assert "Chlorophyll absorbs sunlight" in captured["json"]["messages"][-1]["content"]

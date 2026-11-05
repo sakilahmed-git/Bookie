@@ -5,6 +5,9 @@ import re
 from typing import Any
 
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
