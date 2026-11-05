@@ -118,7 +118,7 @@ pytest -q
 
 ## AI tutor configuration
 
-The tutor retrieves relevant passages with TF-IDF before requesting an explanation from an optional OpenAI-compatible chat completions provider. Set the following in `backend/.env` (never expose the key in a frontend variable):
+The tutor retrieves relevant passages with TF-IDF before requesting an explanation from an optional OpenAI-compatible chat completions provider. From the repository root, copy `backend/.env.example` to `backend/.env`, then add your provider key there (never expose it in a frontend variable):
 
 ```env
 BOOKIE_LLM_PROVIDER=openai-compatible
