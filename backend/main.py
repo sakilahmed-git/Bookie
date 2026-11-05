@@ -5,14 +5,16 @@ from pydantic import BaseModel, Field
 from nlp.document_loader import extract_document_text
 from nlp.engine import BookieNLPEngine
 from nlp.study import build_study_pack
+from nlp.tutor import SourceTutor
 
 engine = BookieNLPEngine()
+tutor = SourceTutor()
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 app = FastAPI(
     title="Bookie NLP API",
-    description="Language analysis and study-material services for Bookie.",
-    version="0.3.0",
+    description="Language analysis, study-material, and source-grounded tutoring services for Bookie.",
+    version="0.4.0",
 )
 
 app.add_middleware(
@@ -32,6 +34,10 @@ class StudyRequest(TextRequest):
     difficulty: str = Field(default="intermediate", pattern="^(beginner|intermediate|advanced)$")
 
 
+class TutorRequest(TextRequest):
+    question: str = Field(min_length=4, max_length=1_000)
+
+
 @app.get("/")
 def root() -> dict[str, str]:
     return {"name": "Bookie", "message": "Understand it. Transform it. Master it.", "status": "running"}
@@ -39,7 +45,7 @@ def root() -> dict[str, str]:
 
 @app.get("/health")
 def health() -> dict[str, object]:
-    return {"status": "healthy", "nlp": engine.status}
+    return {"status": "healthy", "nlp": engine.status, "tutor": {"mode": "source-grounded retrieval"}}
 
 
 @app.post("/api/v1/analyze")
@@ -90,3 +96,13 @@ def create_study_pack(request: StudyRequest) -> dict[str, object]:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail="Study pack generation failed.") from exc
+
+
+@app.post("/api/v1/tutor")
+def ask_source_tutor(request: TutorRequest) -> dict[str, object]:
+    try:
+        return tutor.answer(request.question, request.text)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Tutor request failed.") from exc

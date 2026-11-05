@@ -10,7 +10,8 @@ Bookie is an NLP-powered content transformation and learning platform. Bring you
 ## Product experience
 
 - **Understand:** inspect language patterns and important concepts.
-- **Study:** extract revision notes, flip-through flashcards, and knowledge checks.
+- **Study:** extract revision notes, flashcards, and knowledge checks.
+- **Ask:** question your own material with source-grounded retrieval and evidence.
 - **Play:** practise with short challenges (planned).
 - **Explore:** discover entities, topics, and semantic relationships (planned).
 - **Create:** repurpose source material into useful content (planned).
@@ -31,12 +32,18 @@ Bookie is an NLP-powered content transformation and learning platform. Bring you
 - Document statistics and model availability information
 
 ### Study workspace
-- Revision notes made from original source sentences
-- Flashcards whose answers quote the source
-- Fill-in-the-blank multiple-choice questions based on source sentences
-- Immediate answer feedback and score
+- Revision notes and flashcards grounded in original source sentences
+- Beginner, intermediate, and advanced quiz lengths
+- Browser-local session count and best score
 
-Study pack generation is extractive and deterministic in this MVP. It does not claim to produce independently verified explanations or pedagogically validated questions. TF-IDF scores are within-document salience, not corpus-wide importance.
+### Source tutor
+- Ask a question about the currently loaded source text.
+- TF-IDF retrieval selects up to three relevant source sentences.
+- Responses include sentence references, relevance scores, and a confidence indicator.
+- If no relevant evidence is found, Bookie explicitly declines to answer.
+- Retrieval mode is local and does not require an external AI API key.
+
+The tutor is a retrieval-based learning aid, not a generative LLM. It quotes and assembles relevant source sentences; it does not infer facts absent from the material. TF-IDF relevance is lexical matching, not transformer-based semantic similarity. Study hints are prompts for reflection, not generated factual definitions.
 
 ## Repository structure
 
@@ -46,7 +53,8 @@ bookie/
 │   ├── nlp/
 │   │   ├── document_loader.py
 │   │   ├── engine.py
-│   │   └── study.py
+│   │   ├── study.py
+│   │   └── tutor.py
 │   ├── tests/
 │   ├── main.py
 │   └── requirements.txt
@@ -93,10 +101,11 @@ pytest -q
 | Method | Endpoint | Purpose |
 |---|---|---|
 | GET | / | Service identity |
-| GET | /health | NLP model status |
+| GET | /health | NLP and tutor status |
 | POST | /api/v1/analyze | Linguistic analysis |
 | POST | /api/v1/documents/extract | Extract text from a supported document |
-| POST | /api/v1/study | Generate notes, flashcards, and quiz |
+| POST | /api/v1/study | Generate study material |
+| POST | /api/v1/tutor | Ask a source-grounded question |
 
 ## Development principles
 

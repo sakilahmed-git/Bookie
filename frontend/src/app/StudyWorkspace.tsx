@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileText, GraduationCap, LoaderCircle, Sparkles, Upload, Target, BookOpenCheck } from "lucide-react";
+import { FileText, GraduationCap, LoaderCircle, Sparkles, Upload, Target, BookOpenCheck, MessageCircle, Send } from "lucide-react";
 
 type Props = {
   text: string;
@@ -19,6 +19,14 @@ type Pack = {
   method: string;
   warnings: string[];
 };
+type TutorResult = {
+  answer: string;
+  evidence: { sentence: string; source_sentence: number; relevance: number }[];
+  confidence: "low" | "medium" | "high";
+  mode: string;
+  grounded: boolean;
+  message: string;
+};
 
 const PROGRESS_KEY = "bookie.study.progress.v1";
 
@@ -26,6 +34,9 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
   const [filename, setFilename] = useState("");
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [tutorResult, setTutorResult] = useState<TutorResult | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>("intermediate");
   const [pack, setPack] = useState<Pack | null>(null);
   const [error, setError] = useState("");
@@ -56,6 +67,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
     setUploading(true);
     setError("");
     setPack(null);
+    setTutorResult(null);
     try {
       const form = new FormData();
       form.append("file", file);
@@ -98,6 +110,34 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
     }
   }
 
+  async function askTutor() {
+    if (text.trim().length < 20) {
+      setError("Load at least 20 characters of source material first.");
+      return;
+    }
+    if (question.trim().length < 4) {
+      setError("Enter a question with at least 4 characters.");
+      return;
+    }
+    setAsking(true);
+    setError("");
+    setTutorResult(null);
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/tutor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, question }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.detail || "Tutor request failed.");
+      setTutorResult(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not answer that question.");
+    } finally {
+      setAsking(false);
+    }
+  }
+
   function finishQuiz() {
     if (!pack || !pack.quiz.length || answeredCount !== pack.quiz.length) return;
     const nextCompleted = completed + 1;
@@ -116,7 +156,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
       <div className="mb-4">
         <p className="text-[10px] font-bold uppercase tracking-[1.6px] text-[#9B98AB]">Turn reading into recall</p>
         <h2 className="mt-1 text-xl font-extrabold tracking-[-.7px] text-ink">Your study space</h2>
-        <p className="mt-1 text-xs text-[#858397]">Understand key terms, practise retrieval, and track your study sessions.</p>
+        <p className="mt-1 text-xs text-[#858397]">Understand key terms, practise retrieval, and ask questions about your material.</p>
       </div>
       <div className="panel rounded-[22px] p-5 sm:p-6">
         <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -156,6 +196,14 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
             {uploading ? "Extracting..." : "Choose file"}
             <input type="file" accept=".txt,.md,.pdf,.docx" className="sr-only" disabled={uploading} onChange={(event) => upload(event.target.files?.[0])} />
           </label>
+        </div>
+        <div className="mt-5 rounded-2xl border border-[#EAE6F5] bg-white p-4">
+          <div className="mb-3 flex items-center gap-2"><MessageCircle size={16} className="text-[#7668E8]" /><h4 className="text-xs font-extrabold text-ink">Ask your material</h4><span className="rounded-full bg-[#F1EEFF] px-2 py-1 text-[9px] font-bold text-[#7466D5]">Source-grounded</span></div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !asking) void askTutor(); }} placeholder="Ask a question about your notes..." className="min-w-0 flex-1 rounded-xl border border-[#EAE6F5] bg-[#FCFBFF] px-3 py-3 text-xs outline-none focus:border-[#BDB3F0]" />
+            <button type="button" onClick={askTutor} disabled={asking || uploading} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7668E8] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{asking ? <LoaderCircle size={14} className="animate-spin" /> : <Send size={14} />}Ask Bookie</button>
+          </div>
+          {tutorResult && <div className="mt-4 space-y-3 rounded-xl bg-[#F8F6FF] p-4"><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#6B5ED2]">Retrieved answer</span><span className="text-[10px] text-[#858397]">Evidence match: {tutorResult.confidence}</span></div><p className="text-xs leading-6 text-[#55536B]">{tutorResult.answer}</p><p className="text-[10px] leading-5 text-[#858397]">{tutorResult.message}</p>{tutorResult.evidence.length > 0 && <div className="space-y-2"><p className="text-[9px] font-bold uppercase tracking-wide text-[#9694A6]">Source evidence</p>{tutorResult.evidence.map((item) => <div key={item.source_sentence} className="rounded-lg border border-[#EAE6F5] bg-white p-3"><p className="text-[9px] font-bold text-[#8B80D7]">Sentence {item.source_sentence} · relevance {item.relevance.toFixed(2)}</p><p className="mt-1 text-[11px] leading-5 text-[#5D5A70]">{item.sentence}</p></div>)}</div>}</div>}
         </div>
         {error && <p role="alert" className="mt-3 rounded-xl bg-[#FFF5F7] px-3 py-2 text-xs text-[#A64F6B]">{error}</p>}
         {pack && (
