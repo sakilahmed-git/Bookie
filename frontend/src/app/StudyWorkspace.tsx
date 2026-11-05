@@ -7,6 +7,7 @@ type Props = {
   text: string;
   onTextChange: (value: string) => void;
   apiUrl: string;
+  view?: "study" | "tutor" | "all";
 };
 
 type Difficulty = "beginner" | "intermediate" | "advanced";
@@ -25,7 +26,7 @@ type TutorTurn = { role: "user" | "assistant"; content: string };
 
 const PROGRESS_KEY = "bookie.study.progress.v1";
 
-export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
+export default function StudyWorkspace({ text, onTextChange, apiUrl, view = "all" }: Props) {
   const [filename, setFilename] = useState("");
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -72,7 +73,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
       if (!response.ok) throw new Error(result.detail || "Document extraction failed.");
       onTextChange(result.text);
       setFilename(result.filename);
-      if (result.truncated) setError("The document was shortened to 50,000 characters for this MVP.");
+      if (result.truncated) setError("The document was shortened to 50,000 characters for this session.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read this document.");
     } finally {
@@ -154,18 +155,18 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
   }
 
   return (
-    <section id="study" className="mt-11 scroll-mt-24">
+    <section id="study" className="study-workspace mt-11 scroll-mt-24">
       <div className="mb-4">
-        <p className="text-[10px] font-bold uppercase tracking-[1.6px] text-[#9B98AB]">Turn reading into recall</p>
-        <h2 className="mt-1 text-xl font-extrabold tracking-[-.7px] text-ink">Your study space</h2>
-        <p className="mt-1 text-xs text-[#858397]">Understand key terms, practise retrieval, and ask questions about your material.</p>
+        <p className="text-[10px] font-bold uppercase tracking-[1.6px] text-[#9B98AB]">{view === "tutor" ? "SOURCE-GROUNDED CONVERSATION" : "ACTIVE RECALL"}</p>
+        <h2 className="mt-1 text-xl font-extrabold tracking-[-.7px] text-ink">{view === "tutor" ? "Ask Bookie about your source" : "Your study session"}</h2>
+        <p className="mt-1 text-xs text-[#858397]">{view === "tutor" ? "Get clear explanations and inspect the source evidence behind each answer." : "Build revision notes, flip through flashcards, and check what you remember."}</p>
       </div>
       <div className="panel rounded-[22px] p-5 sm:p-6">
-        <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+        {view !== "tutor" && <div className="study-mode-content">        <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
           <div className="flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-[#F0EDFF] text-[#7668E8]"><GraduationCap size={21} /></span>
             <div>
-              <h3 className="text-sm font-extrabold text-ink">Build a smarter study pack</h3>
+              <h3 className="text-sm font-extrabold text-ink">Build your study pack</h3>
               <p className="mt-1 text-[10px] text-[#9694A6]">All concepts and answers are traceable to your source.</p>
             </div>
           </div>
@@ -199,7 +200,8 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
             <input type="file" accept=".txt,.md,.pdf,.docx" className="sr-only" disabled={uploading} onChange={(event) => upload(event.target.files?.[0])} />
           </label>
         </div>
-        <div className="mt-5 rounded-2xl border border-[#EAE6F5] bg-white p-4">
+        </div>}
+        {view !== "study" && <div className="tutor-mode-content">        <div className="mt-5 rounded-2xl border border-[#EAE6F5] bg-white p-4">
           <div className="mb-3 flex flex-wrap items-center gap-2"><MessageCircle size={16} className="text-[#7668E8]" /><h4 className="text-xs font-extrabold text-ink">Ask your material</h4><span className="rounded-full bg-[#F1EEFF] px-2 py-1 text-[9px] font-bold text-[#7466D5]">AI tutor · evidence-backed</span><label htmlFor="bookie-tutor-level" className="ml-auto text-[10px] font-bold text-[#858397]">Explain for</label><select id="bookie-tutor-level" value={tutorLevel} onChange={(event) => setTutorLevel(event.target.value as Difficulty)} className="rounded-lg border border-[#E7E2F5] bg-white px-2 py-2 text-[10px] text-[#625C82]"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !asking) void askTutor(); }} placeholder="Ask a question about your notes..." className="min-w-0 flex-1 rounded-xl border border-[#EAE6F5] bg-[#FCFBFF] px-3 py-3 text-xs outline-none focus:border-[#BDB3F0]" />
@@ -207,6 +209,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
           </div>
           {chat.length > 0 && <div className="mt-4 max-h-[520px] space-y-3 overflow-y-auto">{chat.map((item, index) => <div key={index} className={item.role === "user" ? "ml-8 rounded-xl bg-[#7668E8] p-3 text-white" : "mr-4 rounded-xl bg-[#F8F6FF] p-4"}><p className="mb-1 text-[9px] font-bold uppercase tracking-wide opacity-70">{item.role === "user" ? "You" : `Bookie · ${item.mode || "tutor"} · ${item.confidence || ""} evidence`}</p><p className="whitespace-pre-wrap text-xs leading-6">{item.content}</p>{item.role === "assistant" && item.evidence && item.evidence.length > 0 && <div className="mt-3 space-y-2 border-t border-[#EAE6F5] pt-3"><p className="text-[9px] font-bold uppercase tracking-wide text-[#8B80D7]">Source evidence</p>{item.evidence.map((source) => <div key={source.source_sentence} className="rounded-lg border border-[#EAE6F5] bg-white p-3"><p className="text-[9px] font-bold text-[#8B80D7]">Sentence {source.source_sentence} · relevance {source.relevance.toFixed(2)}</p><p className="mt-1 text-[11px] leading-5 text-[#5D5A70]">{source.sentence}</p></div>)}</div>}{item.role === "assistant" && item.message && <p className="mt-2 text-[9px] leading-5 text-[#858397]">{item.message}</p>}</div>)}</div>}
         </div>
+        </div>}
         {error && <p role="alert" className="mt-3 rounded-xl bg-[#FFF5F7] px-3 py-2 text-xs text-[#A64F6B]">{error}</p>}
         {pack && (
           <div className="mt-6 space-y-7">

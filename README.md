@@ -4,7 +4,7 @@
 
 ### Turn information into understanding.
 
-**An NLP-powered learning workspace that transforms your notes and documents into language insights, revision material, and an evidence-grounded AI tutor.**
+**A personal knowledge studio that turns notes and documents into clear understanding, active study, and source-grounded answers.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-149eca?logo=react)](https://react.dev/)
@@ -42,7 +42,7 @@ Generic AI summaries can also introduce information that was never in the origin
 
 ### The Bookie approach
 
-Bookie combines traditional NLP, source-based study generation, and optional LLM explanations. The source remains visible, and tutor responses include the passages used to support them.
+Bookie combines language analysis, source-based study generation, and optional AI explanations. The source remains visible, and tutor responses include the passages used to support them.
 
 ## 🚀 What Bookie does
 
@@ -50,7 +50,7 @@ Bookie combines traditional NLP, source-based study generation, and optional LLM
 <tr>
 <td width="50%" valign="top">
 
-### 🔬 Understand — NLP Laboratory
+### 🧠 Understand — Source insights
 
 Inspect the structure of your text:
 
@@ -119,7 +119,7 @@ Bookie is not just a chat box placed beside a document.
 2. **Show the evidence.** The interface displays the source sentences used, with relevance scores.
 3. **Do not invent an answer when evidence is missing.** If retrieval finds no sufficiently relevant passage, Bookie says so.
 4. **Keep a useful offline path.** Without an LLM key, document analysis, study generation, and retrieval-based tutoring still work.
-5. **Make the NLP visible.** The project exposes token, sentence, entity, and keyword outputs rather than hiding everything behind one generated response.
+5. **Make source insights visible.** Bookie surfaces key terms, sentences, entities, and useful context instead of hiding every operation behind one generated response.
 
 ### A note on AI accuracy
 
@@ -129,7 +129,7 @@ Study notes, flashcards, and quiz questions are currently extractive or template
 
 ## 🖥️ Product experience
 
-The interface follows a light visual system with lavender, blue, and coral accents, rounded workspace panels, and responsive layouts.
+The interface uses a calm light visual system with lavender, blue, and coral accents, clear hierarchy, responsive layouts, and focused workflows.
 
 The main workflow:
 
@@ -161,7 +161,7 @@ Import a document or paste text
 | Frontend | Next.js 15, React 19, TypeScript |
 | Styling and UI | Tailwind CSS, Lucide React, Framer Motion |
 | Backend API | Python, FastAPI, Pydantic, Uvicorn |
-| NLP | spaCy, scikit-learn, TF-IDF |
+| Language analysis | spaCy, scikit-learn, TF-IDF |
 | Document parsing | pypdf, python-docx |
 | Optional AI tutor | OpenAI-compatible Chat Completions API |
 | Configuration | python-dotenv |
@@ -183,12 +183,6 @@ Run Bookie locally with the frontend and backend in separate terminals.
 ```bash
 git clone https://github.com/sakilahmed-git/Bookie.git
 cd Bookie
-```
-
-The development work is currently on the `feat/bookie-foundation` branch. To run that version:
-
-```bash
-git checkout feat/bookie-foundation
 ```
 
 ### 2. Set up the backend
@@ -329,7 +323,7 @@ The backend exposes the following endpoints:
 | Method | Endpoint | Purpose |
 |---|---|---|
 | `GET` | `/` | Service identity |
-| `GET` | `/health` | NLP and tutor configuration status |
+| `GET` | `/health` | Language-processing and tutor configuration status |
 | `POST` | `/api/v1/analyze` | Analyse text |
 | `POST` | `/api/v1/documents/extract` | Extract text from an uploaded file |
 | `POST` | `/api/v1/study` | Generate a study pack |
@@ -400,7 +394,7 @@ Bookie/
 - The study session count and best score are stored in the browser's local storage.
 - The optional LLM receives retrieved source passages and up to eight recent chat turns. Do not send confidential or sensitive material to an external model unless you have approval to do so.
 - The current CORS configuration allows the local frontend at `http://localhost:3000`; update it deliberately when deploying elsewhere.
-- The project is an educational MVP, not a substitute for expert review, formal assessment, or verified academic references.
+- Bookie is an early product release. Generated study material and explanations should be checked against the original source; it is not a substitute for expert review or verified references.
 
 ## 🧭 Roadmap
 
@@ -420,13 +414,13 @@ Contributions and practical feedback are welcome.
 
 1. Fork the repository.
 2. Create a focused feature branch.
-3. Keep NLP outputs explainable and source-grounded.
+3. Keep source insights explainable and grounded in the supplied material.
 4. Add or update tests for behaviour changes.
 5. Open a pull request describing the change and how it was checked.
 
-## 🎓 Project context
+## Product direction
 
-Built as **P26 — Automated Content Transformation Platform** for **CSE472: Natural Language Processing**.
+Bookie is being developed as an independent knowledge and learning product. The roadmap prioritises source-grounded understanding, reliable study workflows, privacy controls, and a polished experience across devices.
 
 ## 📄 License
 

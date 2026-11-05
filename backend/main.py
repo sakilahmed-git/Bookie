@@ -14,8 +14,8 @@ tutor = SourceTutor()
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 app = FastAPI(
-    title="Bookie NLP API",
-    description="Language analysis, study-material, and AI tutoring services for Bookie.",
+    title="Bookie API",
+    description="Source understanding, study-material, and grounded tutoring services for Bookie.",
     version="0.5.0",
 )
 
@@ -49,7 +49,7 @@ class TutorRequest(TextRequest):
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"name": "Bookie", "message": "Understand it. Transform it. Master it.", "status": "running"}
+    return {"name": "Bookie", "message": "Make knowledge useful.", "status": "running"}
 
 
 @app.get("/health")

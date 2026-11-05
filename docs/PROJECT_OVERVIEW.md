@@ -1,33 +1,34 @@
-# Bookie — Project Overview
+# Bookie — Product Overview
 
-## Problem
-Complex information is difficult to understand, revise, and repurpose. People often need to move between separate tools to extract concepts, create study material, and check their understanding.
+## Product vision
+Bookie is a personal knowledge studio that helps people turn information into understanding and understanding into useful knowledge. It brings source material, structured learning activities, and source-grounded assistance into one focused workspace.
 
-## Proposed solution
-Bookie is an NLP-powered content transformation platform. It accepts text and documents, analyses linguistic structure and important concepts, then helps users turn source material into understandable explanations, study resources, interactive practice, and reusable content.
+## Who it serves
+- Learners working with notes, chapters, articles, and reference documents
+- Professionals who need to get up to speed on unfamiliar material
+- Educators and teams preparing learning resources
+- Curious readers who want to understand complex information
 
-## Intended users
-- Students working with lecture notes, chapters, and research papers
-- Readers who need complex text explained clearly
-- Educators preparing revision material
-- Creators repurposing written information
+## Core experience
+1. **Bring it in:** paste text or import a TXT, Markdown, PDF, or DOCX document.
+2. **Understand:** inspect the source, its important terms, named entities, and sentence structure.
+3. **Study:** create revision notes, flashcards, and knowledge checks from the source.
+4. **Ask:** ask questions and inspect the passages retrieved to support the answer.
 
-## Product pillars
-1. **Understand:** simplify and explain source material.
-2. **Study:** create notes, flashcards, and quizzes.
-3. **Play:** practise through short knowledge challenges.
-4. **Explore:** inspect entities, topics, and semantic relationships.
-5. **Create:** transform source material into articles and social content.
+## Product principles
+- **Source first:** make it clear which material an answer or learning activity came from.
+- **Honest capability:** distinguish implemented workflows from planned capabilities.
+- **Low friction:** keep the path from source to useful outcome short.
+- **Privacy aware:** document processing is currently in memory; do not imply persistent cloud storage.
+- **Accessible by default:** responsive layouts, keyboard focus states, readable type, and reduced-motion support.
 
-## Academic foundation
-Bookie makes NLP operations inspectable: tokenisation, normalisation, lemmatisation, POS tagging, named entity recognition, n-grams, TF-IDF, classification, semantic similarity, summarisation, and evaluation.
+## Current product scope
+The current release supports document extraction, text analysis, extractive study-pack generation, browser-local study progress, and retrieval-grounded tutoring with an optional server-side LLM. Accounts, persistent document libraries, cross-device progress, semantic vector search, OCR, exports, and collaborative workspaces are not yet implemented.
 
-## MVP
-The first increment focuses on text input and analysis:
-- document statistics and sentence segmentation
-- token and lemma inspection
-- POS tagging and named entities
-- sentence-level TF-IDF keywords
-- a light, accessible analysis workspace
-
-Subsequent increments add transformations, study tools, games, semantic exploration, and evaluation.
+## Roadmap
+- Reliable document library with user-controlled retention
+- Better semantic retrieval and source citations
+- Richer learning modes and adaptive review
+- Exportable notes, flashcards, and study packs
+- Account, sync, and collaboration features
+- Production deployment, monitoring, and automated quality checks
