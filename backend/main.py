@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -13,8 +15,8 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 app = FastAPI(
     title="Bookie NLP API",
-    description="Language analysis, study-material, and source-grounded tutoring services for Bookie.",
-    version="0.4.0",
+    description="Language analysis, study-material, and AI tutoring services for Bookie.",
+    version="0.5.0",
 )
 
 app.add_middleware(
@@ -34,8 +36,15 @@ class StudyRequest(TextRequest):
     difficulty: str = Field(default="intermediate", pattern="^(beginner|intermediate|advanced)$")
 
 
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2_000)
+
+
 class TutorRequest(TextRequest):
     question: str = Field(min_length=4, max_length=1_000)
+    level: str = Field(default="intermediate", pattern="^(beginner|intermediate|advanced)$")
+    history: list[ChatTurn] = Field(default_factory=list, max_length=8)
 
 
 @app.get("/")
@@ -45,7 +54,7 @@ def root() -> dict[str, str]:
 
 @app.get("/health")
 def health() -> dict[str, object]:
-    return {"status": "healthy", "nlp": engine.status, "tutor": {"mode": "source-grounded retrieval"}}
+    return {"status": "healthy", "nlp": engine.status, "tutor": tutor.status}
 
 
 @app.post("/api/v1/analyze")
@@ -73,12 +82,7 @@ async def extract_document(file: UploadFile = File(...)) -> dict[str, object]:
             truncated = False
         if len(extracted.strip()) < 20:
             raise HTTPException(status_code=422, detail="The document contains too little extractable text.")
-        return {
-            "filename": filename,
-            "text": extracted,
-            "characters": len(extracted),
-            "truncated": truncated,
-        }
+        return {"filename": filename, "text": extracted, "characters": len(extracted), "truncated": truncated}
     except HTTPException:
         raise
     except ValueError as exc:
@@ -90,8 +94,7 @@ async def extract_document(file: UploadFile = File(...)) -> dict[str, object]:
 @app.post("/api/v1/study")
 def create_study_pack(request: StudyRequest) -> dict[str, object]:
     try:
-        analysis = engine.analyze(request.text)
-        return build_study_pack(request.text, analysis, request.difficulty)
+        return build_study_pack(request.text, engine.analyze(request.text), request.difficulty)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
@@ -101,7 +104,8 @@ def create_study_pack(request: StudyRequest) -> dict[str, object]:
 @app.post("/api/v1/tutor")
 def ask_source_tutor(request: TutorRequest) -> dict[str, object]:
     try:
-        return tutor.answer(request.question, request.text)
+        history = [turn.model_dump() for turn in request.history]
+        return tutor.answer(request.question, request.text, request.level, history)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:

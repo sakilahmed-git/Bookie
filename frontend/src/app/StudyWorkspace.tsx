@@ -19,14 +19,9 @@ type Pack = {
   method: string;
   warnings: string[];
 };
-type TutorResult = {
-  answer: string;
-  evidence: { sentence: string; source_sentence: number; relevance: number }[];
-  confidence: "low" | "medium" | "high";
-  mode: string;
-  grounded: boolean;
-  message: string;
-};
+type Evidence = { sentence: string; source_sentence: number; relevance: number };
+type ChatMessage = { role: "user" | "assistant"; content: string; evidence?: Evidence[]; confidence?: string; mode?: string; message?: string };
+type TutorTurn = { role: "user" | "assistant"; content: string };
 
 const PROGRESS_KEY = "bookie.study.progress.v1";
 
@@ -36,7 +31,8 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
   const [generating, setGenerating] = useState(false);
   const [asking, setAsking] = useState(false);
   const [question, setQuestion] = useState("");
-  const [tutorResult, setTutorResult] = useState<TutorResult | null>(null);
+  const [tutorLevel, setTutorLevel] = useState<Difficulty>("beginner");
+  const [chat, setChat] = useState<ChatMessage[]>([]);
   const [difficulty, setDifficulty] = useState<Difficulty>("intermediate");
   const [pack, setPack] = useState<Pack | null>(null);
   const [error, setError] = useState("");
@@ -67,7 +63,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
     setUploading(true);
     setError("");
     setPack(null);
-    setTutorResult(null);
+    setChat([]);
     try {
       const form = new FormData();
       form.append("file", file);
@@ -121,16 +117,22 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
     }
     setAsking(true);
     setError("");
-    setTutorResult(null);
+    const asked = question.trim();
+    const history: TutorTurn[] = chat.slice(-8).map(({ role, content }) => ({ role, content }));
     try {
       const response = await fetch(`${apiUrl}/api/v1/tutor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, question }),
+        body: JSON.stringify({ text, question: asked, level: tutorLevel, history }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.detail || "Tutor request failed.");
-      setTutorResult(result);
+      setChat((current) => [
+        ...current,
+        { role: "user", content: asked },
+        { role: "assistant", content: result.answer, evidence: result.evidence, confidence: result.confidence, mode: result.mode, message: result.message },
+      ]);
+      setQuestion("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not answer that question.");
     } finally {
@@ -198,12 +200,12 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl }: Props) {
           </label>
         </div>
         <div className="mt-5 rounded-2xl border border-[#EAE6F5] bg-white p-4">
-          <div className="mb-3 flex items-center gap-2"><MessageCircle size={16} className="text-[#7668E8]" /><h4 className="text-xs font-extrabold text-ink">Ask your material</h4><span className="rounded-full bg-[#F1EEFF] px-2 py-1 text-[9px] font-bold text-[#7466D5]">Source-grounded</span></div>
+          <div className="mb-3 flex flex-wrap items-center gap-2"><MessageCircle size={16} className="text-[#7668E8]" /><h4 className="text-xs font-extrabold text-ink">Ask your material</h4><span className="rounded-full bg-[#F1EEFF] px-2 py-1 text-[9px] font-bold text-[#7466D5]">AI tutor · evidence-backed</span><label htmlFor="bookie-tutor-level" className="ml-auto text-[10px] font-bold text-[#858397]">Explain for</label><select id="bookie-tutor-level" value={tutorLevel} onChange={(event) => setTutorLevel(event.target.value as Difficulty)} className="rounded-lg border border-[#E7E2F5] bg-white px-2 py-2 text-[10px] text-[#625C82]"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !asking) void askTutor(); }} placeholder="Ask a question about your notes..." className="min-w-0 flex-1 rounded-xl border border-[#EAE6F5] bg-[#FCFBFF] px-3 py-3 text-xs outline-none focus:border-[#BDB3F0]" />
             <button type="button" onClick={askTutor} disabled={asking || uploading} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7668E8] px-4 py-3 text-xs font-bold text-white disabled:opacity-50">{asking ? <LoaderCircle size={14} className="animate-spin" /> : <Send size={14} />}Ask Bookie</button>
           </div>
-          {tutorResult && <div className="mt-4 space-y-3 rounded-xl bg-[#F8F6FF] p-4"><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#6B5ED2]">Retrieved answer</span><span className="text-[10px] text-[#858397]">Evidence match: {tutorResult.confidence}</span></div><p className="text-xs leading-6 text-[#55536B]">{tutorResult.answer}</p><p className="text-[10px] leading-5 text-[#858397]">{tutorResult.message}</p>{tutorResult.evidence.length > 0 && <div className="space-y-2"><p className="text-[9px] font-bold uppercase tracking-wide text-[#9694A6]">Source evidence</p>{tutorResult.evidence.map((item) => <div key={item.source_sentence} className="rounded-lg border border-[#EAE6F5] bg-white p-3"><p className="text-[9px] font-bold text-[#8B80D7]">Sentence {item.source_sentence} · relevance {item.relevance.toFixed(2)}</p><p className="mt-1 text-[11px] leading-5 text-[#5D5A70]">{item.sentence}</p></div>)}</div>}</div>}
+          {chat.length > 0 && <div className="mt-4 max-h-[520px] space-y-3 overflow-y-auto">{chat.map((item, index) => <div key={index} className={item.role === "user" ? "ml-8 rounded-xl bg-[#7668E8] p-3 text-white" : "mr-4 rounded-xl bg-[#F8F6FF] p-4"}><p className="mb-1 text-[9px] font-bold uppercase tracking-wide opacity-70">{item.role === "user" ? "You" : `Bookie · ${item.mode || "tutor"} · ${item.confidence || ""} evidence`}</p><p className="whitespace-pre-wrap text-xs leading-6">{item.content}</p>{item.role === "assistant" && item.evidence && item.evidence.length > 0 && <div className="mt-3 space-y-2 border-t border-[#EAE6F5] pt-3"><p className="text-[9px] font-bold uppercase tracking-wide text-[#8B80D7]">Source evidence</p>{item.evidence.map((source) => <div key={source.source_sentence} className="rounded-lg border border-[#EAE6F5] bg-white p-3"><p className="text-[9px] font-bold text-[#8B80D7]">Sentence {source.source_sentence} · relevance {source.relevance.toFixed(2)}</p><p className="mt-1 text-[11px] leading-5 text-[#5D5A70]">{source.sentence}</p></div>)}</div>}{item.role === "assistant" && item.message && <p className="mt-2 text-[9px] leading-5 text-[#858397]">{item.message}</p>}</div>)}</div>}
         </div>
         {error && <p role="alert" className="mt-3 rounded-xl bg-[#FFF5F7] px-3 py-2 text-xs text-[#A64F6B]">{error}</p>}
         {pack && (

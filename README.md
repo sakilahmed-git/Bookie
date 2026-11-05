@@ -114,3 +114,18 @@ pytest -q
 - Modular NLP components with testable behaviour.
 - Explainable intermediate results for academic demonstration.
 - Keep uploaded documents and model artifacts out of Git.
+
+
+## AI tutor configuration
+
+The tutor retrieves relevant passages with TF-IDF before requesting an explanation from an optional OpenAI-compatible chat completions provider. Set the following in `backend/.env` (never expose the key in a frontend variable):
+
+```env
+BOOKIE_LLM_PROVIDER=openai-compatible
+BOOKIE_LLM_API_KEY=
+BOOKIE_LLM_MODEL=gpt-4o-mini
+BOOKIE_LLM_BASE_URL=https://api.openai.com/v1
+BOOKIE_LLM_TIMEOUT=25
+```
+
+The tutor supports beginner, intermediate, and advanced explanations plus up to eight recent conversation turns for follow-up questions. Only retrieved passages and bounded chat history are sent to the model. If no source evidence is retrieved, it declines; if the provider fails or is not configured, it returns the retrieved source passages. Model answers should still be checked against the displayed evidence. Retrieval uses TF-IDF, not transformer embeddings.
