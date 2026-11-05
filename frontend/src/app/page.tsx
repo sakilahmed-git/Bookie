@@ -2,13 +2,13 @@
 import {useEffect,useMemo,useState} from "react";
 import {AnimatePresence,motion} from "framer-motion";
 import StudyWorkspace from "./StudyWorkspace";
-import {ArrowRight,BookOpen,BrainCircuit,Check,ChevronRight,FileText,FolderOpen,GraduationCap,Home,Library,LoaderCircle,MessageCircle,PanelLeft,Plus,Search,ShieldCheck,Sparkles,UploadCloud,WandSparkles,X,Bookmark} from "lucide-react";
+import {ArrowRight,BookOpen,BrainCircuit,Check,ChevronRight,FileText,FolderOpen,GraduationCap,Home as HomeIcon,Library,LoaderCircle,MessageCircle,PanelLeft,Plus,Search,ShieldCheck,Sparkles,UploadCloud,WandSparkles,X,Bookmark} from "lucide-react";
 type View="overview"|"understand"|"study"|"ask"|"library";
 type Analysis={statistics:{characters:number;words:number;sentences:number;entities:number};sentences:string[];tokens:any[];entities:{text:string;label:string;description:string|null}[];keywords:{word:string;score:number}[];model:{name:string;loaded:boolean};warnings:string[]};
 type Saved={id:string;name:string;text:string;words:number;savedAt:string};
 const API=process.env.NEXT_PUBLIC_API_URL||"http://localhost:8000";
 const SAMPLE="Learning becomes more effective when new information is connected to what we already know. Active recall asks the learner to retrieve an idea from memory instead of simply rereading it. Spaced repetition strengthens that memory by revisiting important ideas over increasing intervals. Together, these techniques make study sessions more focused and help knowledge last longer.";
-const NAV=[{id:"overview" as View,label:"Overview",icon:Home},{id:"understand" as View,label:"Understand",icon:BrainCircuit},{id:"study" as View,label:"Study",icon:GraduationCap},{id:"ask" as View,label:"Ask Bookie",icon:MessageCircle},{id:"library" as View,label:"Library",icon:Library}];
+const NAV=[{id:"overview" as View,label:"Overview",icon:HomeIcon},{id:"understand" as View,label:"Understand",icon:BrainCircuit},{id:"study" as View,label:"Study",icon:GraduationCap},{id:"ask" as View,label:"Ask Bookie",icon:MessageCircle},{id:"library" as View,label:"Library",icon:Library}];
 const META:Record<View,[string,string,string]>={overview:["Your knowledge, in motion.","Pick up where you left off or bring something new to understand.","YOUR WORKSPACE"],understand:["Understand anything.","Bring in a source and discover the ideas, language and details that matter.","SOURCE INSIGHTS"],study:["Turn insight into recall.","Build a study pack, practise with flashcards and check what you remember.","ACTIVE LEARNING"],ask:["Ask better questions.","Explore your material with answers grounded in the source you provided.","SOURCE-GROUNDED TUTOR"],library:["Your knowledge library.","A home for the sources you want to keep close.","YOUR COLLECTION"]};
 const words=(s:string)=>s.trim().split(/\s+/).filter(Boolean).length;
 function Skeleton(){return <div className="app-skeleton" aria-label="Loading"><i/><i/><div><i/><i/><i/></div><i/></div>}
