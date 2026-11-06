@@ -40,7 +40,8 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl, view = "all
   const [flipped, setFlipped] = useState<number[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [completed, setCompleted] = useState(0);
-  const [bestScore, setBestScore] = useState(0);\n  const [sessionSaved, setSessionSaved] = useState(false);
+  const [bestScore, setBestScore] = useState(0);
+  const [sessionSaved, setSessionSaved] = useState(false);
 
   useEffect(() => {
     try {
@@ -143,10 +144,12 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl, view = "all
 
   function finishQuiz() {
     if (!pack || !pack.quiz.length || answeredCount !== pack.quiz.length) return;
-    if (sessionSaved) return;\n    const nextCompleted = completed + 1;
+    if (sessionSaved) return;
+    const nextCompleted = completed + 1;
     const nextBest = Math.max(bestScore, Math.round((score / pack.quiz.length) * 100));
     setCompleted(nextCompleted);
-    setBestScore(nextBest);\n    setSessionSaved(true);
+    setBestScore(nextBest);
+    setSessionSaved(true);
     try {
       window.localStorage.setItem(PROGRESS_KEY, JSON.stringify({ completed: nextCompleted, bestScore: nextBest }));
     } catch {
