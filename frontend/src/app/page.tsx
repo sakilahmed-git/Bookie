@@ -58,13 +58,14 @@ export default function HomePage() {
 
   useEffect(() => {
     const readView = () => {
-      const candidate = window.location.hash.replace(/^#\\/?/, "") as View;
+      const candidate = window.location.hash.slice(1).replace("/", "") as View;
       if (["home", "understand", "study", "tutor", "library"].includes(candidate)) setView(candidate);
     };
     readView();
     window.addEventListener("hashchange", readView);
+    window.addEventListener("popstate", readView);
     setGreeting(new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date()).toUpperCase());
-    return () => window.removeEventListener("hashchange", readView);
+    return () => { window.removeEventListener("hashchange", readView); window.removeEventListener("popstate", readView); };
   }, []);
   useEffect(() => {
     try {
@@ -268,7 +269,7 @@ export default function HomePage() {
           <footer className="app-footer"><span className="footer-mark">bookie<span>.</span></span><span>Learn with intention.</span><span className="footer-privacy"><ShieldCheck size={13}/> Local-first workspace</span></footer>
         </div>
       </section>
-      {toast && <div className="toast-message" role="status"><Check size={15}/>{toast}</div>}
+      {toast && <div className="toast-message" role="status" aria-live="polite"><Check size={15}/>{toast}</div>}
     </main>
   );
 }
