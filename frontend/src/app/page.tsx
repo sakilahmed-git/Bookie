@@ -25,9 +25,9 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const SAMPLE = "Learning becomes more effective when new information is connected to what we already know. Active recall asks the learner to retrieve an idea from memory instead of simply rereading it. Spaced repetition strengthens that memory by revisiting important ideas over increasing intervals. Together, these techniques make study sessions more focused and help knowledge last longer.";
 const NAV: { id: View; label: string; icon: typeof Home; group: string }[] = [
   { id: "home", label: "Home", icon: Home, group: "Workspace" },
-  { id: "understand", label: "Understand", icon: BrainCircuit, group: "WORKSPACE" },
+  { id: "understand", label: "Understand", icon: BrainCircuit, group: "Workspace" },
   { id: "study", label: "Study room", icon: GraduationCap, group: "Learn" },
-  { id: "tutor", label: "Ask Bookie", icon: MessageCircle, group: "LEARN" },
+  { id: "tutor", label: "Ask Bookie", icon: MessageCircle, group: "Learn" },
   { id: "library", label: "Library", icon: Library, group: "Your material" },
 ];
 const countWords = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
