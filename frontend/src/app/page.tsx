@@ -193,38 +193,22 @@ export default function HomePage() {
         <div className="page-wrap" id="main-content" tabIndex={-1}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div key={view} className="page-view" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-5}} transition={{duration:.18}}>
-              {view === "home" && <div className="dashboard">
-                <div className="welcome-line"><div><p className="eyebrow">{greeting || "Your workspace"} <span>·</span> YOUR WORKSPACE</p><h1>Your learning, in one place.</h1><p className="welcome-sub">Bring in a source, understand the important ideas, and turn them into knowledge you can recall.</p></div><button className="button-primary" onClick={() => navigate("understand")}><Plus size={16}/> Add a source</button></div>
-                <div className="dashboard-grid">
-                  <section className="main-column">
-                    <div className="section-head"><div><span className="section-overline">Continue</span><h2>Continue learning</h2></div><span className="subtle-count">{saved.length} saved {saved.length === 1 ? "source" : "sources"}</span></div>
-                    {latest ? <button className="continue-card" onClick={() => openSource(latest)}>
-                      <span className="continue-icon"><FileText size={20}/></span><span className="continue-content"><small>RECENT SOURCE</small><b>{latest.name}</b><span>{latest.words.toLocaleString()} words · Saved {new Date(latest.savedAt).toLocaleDateString()}</span></span><span className="continue-action">Open source <ArrowRight size={15}/></span>
-                    </button> : <div className="empty-start"><div className="empty-illustration"><BookOpen size={24}/><span><Sparkles size={12}/></span></div><div><b>Start with something you want to understand.</b><p>Import a PDF, lecture notes or an article. Your source becomes the foundation for analysis, study and questions.</p><button className="text-action" onClick={() => navigate("understand")}>Import your first source <ArrowRight size={14}/></button></div></div>}
-                    <div className="section-head workflow-heading"><div><span className="section-overline">Your workflow</span><h2>What do you want to do?</h2></div></div>
-                    <div className="action-list">
-                      <button onClick={() => navigate("understand")}><span className="action-icon violet"><BrainCircuit size={19}/></span><span><b>Understand a topic</b><small>Extract key ideas, entities and structure from a source.</small></span><ArrowDownRight size={17}/></button>
-                      <button onClick={() => navigate("study")}><span className="action-icon blue"><GraduationCap size={19}/></span><span><b>Build a study session</b><small>Create revision notes, flashcards and a knowledge check.</small></span><ArrowDownRight size={17}/></button>
-                      <button onClick={() => navigate("tutor")}><span className="action-icon coral"><MessageCircle size={19}/></span><span><b>Ask a question</b><small>Get answers tied to passages in your source.</small></span><ArrowDownRight size={17}/></button>
-                    </div>
-                  </section>
-                  <aside className="side-column">
-                    <div className="side-panel">
-                      <div className="side-panel-head"><span className="side-panel-icon"><FolderOpen size={17}/></span><span>Your library</span></div>
-                      <strong className="library-number">{saved.length.toString().padStart(2,"0")}</strong>
-                      <p>Sources saved in this browser</p>
-                      <button className="panel-link" onClick={() => navigate("library")}>Browse library <ArrowRight size={14}/></button>
-                    </div>
-                    <div className="side-panel tip-panel">
-                      <div className="side-panel-head"><span className="side-panel-icon warm"><Sparkles size={17}/></span><span>Study tip</span></div>
-                      <h3>Understand → retrieve → revisit.</h3>
-                      <p>Don't just reread. Try recalling an idea before revealing the answer, then revisit it later.</p>
-                      <button className="panel-link" onClick={() => navigate("study")}>Start active recall <ArrowRight size={14}/></button>
-                    </div>
-                    <div className="privacy-note"><ShieldCheck size={15}/><span>Sources are stored in this browser only. They are not synced between devices.</span></div>
-                  </aside>
-                </div>
-              </div>}
+              {view === "home" && <div className="dashboard dashboard-v2">
+<section className="home-heading"><div><p className="eyebrow">{greeting || "Your workspace"} <span>·</span> PERSONAL LEARNING DESK</p><h1>Make learning <em>click.</em></h1><p className="welcome-sub">One place to understand your material, practise what matters, and keep what you learn.</p></div><button className="button-primary home-add" onClick={() => navigate("understand")}><Plus size={17}/> Add a source</button></section>
+<section className="home-overview" aria-label="Workspace overview">
+<div className="overview-main"><div className="overview-copy"><span className="overview-kicker"><Sparkles size={14}/> YOUR NEXT STEP</span><h2>{latest ? "Pick up where you left off." : "Start with what you're learning."}</h2><p>{latest ? "Your latest source is ready. Continue understanding it, build a study set, or ask Bookie a question." : "Bring in a lecture, a PDF, or your own notes. Bookie will turn the material into a space you can explore and practise."}</p><div className="overview-actions"><button className="button-primary" onClick={() => latest ? openSource(latest) : navigate("understand")}>{latest ? "Continue learning" : "Import your first source"} <ArrowRight size={16}/></button>{latest && <button className="button-quiet" onClick={() => navigate("study")}>Start a study session</button>}</div></div><div className="overview-art" aria-hidden="true"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="orbit-core"><BookOpen size={34}/></div><span className="orbit-chip chip-one"><BrainCircuit size={15}/> Understand</span><span className="orbit-chip chip-two"><GraduationCap size={15}/> Remember</span></div></div>
+<div className="overview-stats"><div><span className="stat-icon"><FolderOpen size={17}/></span><span><small>YOUR SOURCES</small><b>{saved.length.toString().padStart(2,"0")}</b><em>Saved in this browser</em></span></div><div><span className="stat-icon stat-icon-blue"><FileText size={17}/></span><span><small>WORDS IN LIBRARY</small><b>{saved.reduce((sum,item)=>sum+item.words,0).toLocaleString()}</b><em>Across your saved material</em></span></div></div>
+</section>
+<section className="home-workflow"><div className="home-section-heading"><div><span className="section-overline">YOUR WORKFLOW</span><h2>What would you like to do?</h2></div><span className="workflow-hint">Choose a starting point <ArrowDownRight size={15}/></span></div>
+<div className="workflow-grid">
+<button className="workflow-card workflow-understand" onClick={() => navigate("understand")}><span className="workflow-card-top"><span className="workflow-card-icon"><BrainCircuit size={20}/></span><ArrowRight size={17}/></span><span className="workflow-card-title">Understand</span><span className="workflow-card-description">Break down a document into key ideas, language, entities and structure.</span><span className="workflow-card-foot">Explore a source <ArrowRight size={14}/></span></button>
+<button className="workflow-card workflow-study" onClick={() => navigate("study")}><span className="workflow-card-top"><span className="workflow-card-icon"><GraduationCap size={20}/></span><ArrowRight size={17}/></span><span className="workflow-card-title">Study room</span><span className="workflow-card-description">Create revision notes, flip through flashcards and test your understanding.</span><span className="workflow-card-foot">Build a study set <ArrowRight size={14}/></span></button>
+<button className="workflow-card workflow-tutor" onClick={() => navigate("tutor")}><span className="workflow-card-top"><span className="workflow-card-icon"><MessageCircle size={20}/></span><ArrowRight size={17}/></span><span className="workflow-card-title">Ask Bookie</span><span className="workflow-card-description">Ask questions and get answers grounded in passages from your material.</span><span className="workflow-card-foot">Ask a question <ArrowRight size={14}/></span></button>
+</div></section>
+<section className="home-bottom-grid"><div className="home-recent-panel"><div className="home-section-heading"><div><span className="section-overline">PICK UP AGAIN</span><h2>Recent material</h2></div><button className="text-action" onClick={() => navigate("library")}>View library <ArrowRight size={14}/></button></div>
+{latest ? <button className="recent-source-row" onClick={() => openSource(latest)}><span className="recent-file-icon"><FileText size={19}/></span><span><b>{latest.name}</b><small>{latest.words.toLocaleString()} words · Saved {new Date(latest.savedAt).toLocaleDateString()}</small></span><ArrowRight size={17}/></button> : <div className="recent-empty"><span><FolderOpen size={19}/></span><div><b>Your library is ready when you are.</b><small>Sources you import will appear here for quick access.</small></div><button className="text-action" onClick={() => navigate("library")}>Open library <ArrowRight size={14}/></button></div>}</div>
+<aside className="home-tip-panel"><span className="tip-mark"><Sparkles size={17}/></span><span className="section-overline">A BETTER WAY TO LEARN</span><h3>Understand. Retrieve. Revisit.</h3><p>Read for meaning, recall an idea without looking, then return to it later. That's how information becomes knowledge.</p><button className="text-action" onClick={() => navigate("study")}>Try active recall <ArrowRight size={14}/></button></aside></section>
+</div>}
 
               {view === "understand" && <div className="workspace-page">
                 <div className="workspace-intro"><div><p className="eyebrow">Source workspace</p><h1>Understand your material.</h1><p>Bring in a document or paste text. Inspect its structure, important terms and key passages.</p></div><button className="button-quiet" onClick={saveSource}><Plus size={15}/> Save to library</button></div>
