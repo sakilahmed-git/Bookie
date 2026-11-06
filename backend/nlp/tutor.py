@@ -117,7 +117,7 @@ class SourceTutor:
         follow_up = bool(
             re.match(
                 r"^(?:it|this|that|these|those|they|them|there|the former|the latter|"
-                r"why|how|what about|and what about|can you explain that|elaborate on that)\\b",
+                r"why|how|what about|and what about|can you explain that|elaborate on that)\b",
                 query.lower(),
             )
         ) and len(query.split()) <= 9
