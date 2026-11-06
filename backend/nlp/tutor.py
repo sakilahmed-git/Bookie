@@ -112,9 +112,21 @@ class SourceTutor:
             raise ValueError("Level must be beginner, intermediate, or advanced.")
 
         safe_history = (history or [])[-8:]
-        prior_questions = [turn["content"] for turn in safe_history if turn.get("role") == "user"][-2:]
-        evidence = self._retrieve(" ".join(prior_questions + [query]), source)
-        if not evidence:
+        # Only use prior context for genuinely referential follow-ups. Never blend
+        # unrelated earlier questions into the current retrieval query.
+        follow_up = bool(
+            re.match(
+                r"^(?:it|this|that|these|those|they|them|there|the former|the latter|"
+                r"why|how|what about|and what about|can you explain that|elaborate on that)\\b",
+                query.lower(),
+            )
+        ) and len(query.split()) <= 9
+        prior_questions = [
+            turn["content"] for turn in safe_history if turn.get("role") == "user"
+        ][-1:] if follow_up else []
+        retrieval_query = " ".join(prior_questions + [query])
+        evidence = self._retrieve(retrieval_query, source)
+        if not evidence or evidence[0]["relevance"] < 0.12:
             return {
                 "answer": "I could not find a sufficiently relevant passage in the supplied material. Try using a key term from your notes or asking a more specific question.",
                 "evidence": [], "confidence": "low", "mode": "retrieval",

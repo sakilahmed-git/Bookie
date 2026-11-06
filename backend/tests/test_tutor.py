@@ -25,6 +25,40 @@ def test_tutor_declines_when_no_relevant_evidence_exists() -> None:
     assert "could not find" in result["answer"].lower()
 
 
+
+def test_unrelated_follow_up_does_not_reuse_previous_question_evidence() -> None:
+    source = (
+        "A minimum spanning tree connects every vertex without cycles and has "
+        "the minimum possible total edge weight. Prim's algorithm grows a tree "
+        "by repeatedly adding the cheapest edge that connects a new vertex."
+    )
+    result = SourceTutor().answer(
+        "Who invented the internet?",
+        source,
+        history=[
+            {"role": "user", "content": "What is a minimum spanning tree?"},
+            {"role": "assistant", "content": "A minimum spanning tree connects every vertex."},
+        ],
+    )
+    assert result["evidence"] == []
+    assert result["confidence"] == "low"
+    assert "could not find" in result["answer"].lower()
+
+
+def test_referential_follow_up_can_use_previous_question_context() -> None:
+    source = (
+        "A minimum spanning tree connects every vertex without cycles and has "
+        "the minimum possible total edge weight."
+    )
+    result = SourceTutor().answer(
+        "Why is that useful?",
+        source,
+        history=[{"role": "user", "content": "What is a minimum spanning tree?"}],
+    )
+    assert result["evidence"]
+    assert "minimum spanning tree" in result["evidence"][0]["sentence"].lower()
+
+
 def test_tutor_validates_question_source_and_level() -> None:
     tutor = SourceTutor()
     with pytest.raises(ValueError, match="4 characters"):
