@@ -42,6 +42,7 @@ function IconButton({ children, onClick, label }: { children: React.ReactNode; o
 
 export default function HomePage() {
   const [view, setView] = useState<View>("home");
+  const [greeting, setGreeting] = useState("");
   const [source, setSource] = useState("");
   const [sourceName, setSourceName] = useState("");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -55,6 +56,16 @@ export default function HomePage() {
   const [collapsed, setCollapsed] = useState(false);
   const wordCount = useMemo(() => countWords(source), [source]);
 
+  useEffect(() => {
+    const readView = () => {
+      const candidate = window.location.hash.replace(/^#\\/?/, "") as View;
+      if (["home", "understand", "study", "tutor", "library"].includes(candidate)) setView(candidate);
+    };
+    readView();
+    window.addEventListener("hashchange", readView);
+    setGreeting(new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date()).toUpperCase());
+    return () => window.removeEventListener("hashchange", readView);
+  }, []);
   useEffect(() => {
     try {
       const data = JSON.parse(localStorage.getItem("bookie.library.v1") || "[]");
@@ -79,6 +90,7 @@ export default function HomePage() {
   }, []);
 
   function navigate(next: View) {
+    if (window.location.hash !== `#${next}`) window.history.pushState(null, "", `#${next}`);
     setView(next); setSidebarOpen(false); setError("");
   }
   function persist(next: SavedSource[]) {
@@ -128,14 +140,19 @@ export default function HomePage() {
   function openSource(item: SavedSource) {
     setSource(item.text); setSourceName(item.name); setAnalysis(null); navigate("understand");
   }
-  function removeSource(id: string) { persist(saved.filter(item => item.id !== id)); setToast("Source removed"); }
+  function removeSource(id: string) {
+    const item = saved.find(source => source.id === id);
+    if (!item || !window.confirm(`Remove “${item.name}” from your library? This cannot be undone.`)) return;
+    persist(saved.filter(source => source.id !== id)); setToast("Source removed");
+  }
 
   const latest = saved[0];
   const filtered = saved.filter(item => (item.name + " " + item.text).toLowerCase().includes(query.toLowerCase()));
-  const greeting = new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date());
+
 
   return (
     <main className={`bookie-frame ${collapsed ? "nav-collapsed" : ""}`}>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       {sidebarOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
       <aside className={`side-rail ${sidebarOpen ? "side-open" : ""}`}>
         <button className="brand-lockup" onClick={() => navigate("home")} aria-label="Bookie home">
@@ -146,8 +163,8 @@ export default function HomePage() {
           {NAV.map(({id,label,icon:Icon,group}, index) => (
             <div key={id}>
               {(index === 0 || NAV[index-1].group !== group) && <p className="rail-group">{group}</p>}
-              <button onClick={() => navigate(id)} className={`rail-link ${view === id ? "is-active" : ""}`}>
-                <Icon size={17}/><span>{label}</span>{view === id && <i/>}
+              <button type="button" aria-current={view === id ? "page" : undefined} onClick={() => navigate(id)} className={`rail-link ${view === id ? "is-active" : ""}`}>
+                <Icon size={17} aria-hidden="true"/><span>{label}</span>{view === id && <i aria-hidden="true"/>}
               </button>
             </div>
           ))}
@@ -166,17 +183,17 @@ export default function HomePage() {
             <div className="top-crumb"><span>Bookie</span><ChevronRight size={13}/><b>{titles[view]}</b></div>
           </div>
           <div className="topbar-right">
-            <label className="search-box"><Search size={15}/><input className="global-search" value={query} onChange={e => { setQuery(e.target.value); if (view !== "library") setView("library"); }} placeholder="Search your library"/><kbd>Ctrl K</kbd></label>
+            <label className="search-box"><Search size={15} aria-hidden="true"/><input className="global-search" type="search" name="library-search" autoComplete="off" aria-label="Search your library" value={query} onChange={e => { setQuery(e.target.value); if (view !== "library") navigate("library"); }} placeholder="Search your library…"/><kbd>Ctrl K</kbd></label>
             <span className="topbar-divider"/>
             <span className="top-status"><span/>All changes local</span>
           </div>
         </header>
 
-        <div className="page-wrap">
+        <div className="page-wrap" id="main-content" tabIndex={-1}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div key={view} className="page-view" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-5}} transition={{duration:.18}}>
               {view === "home" && <div className="dashboard">
-                <div className="welcome-line"><div><p className="eyebrow">{greeting.toUpperCase()} <span>·</span> YOUR WORKSPACE</p><h1>Make time for <em>understanding.</em></h1><p className="welcome-sub">A focused place to work through information, practise what matters, and keep what you learn.</p></div><button className="button-primary" onClick={() => navigate("understand")}><Plus size={16}/> Add a source</button></div>
+                <div className="welcome-line"><div><p className="eyebrow">{greeting || "YOUR WORKSPACE"} <span>·</span> YOUR WORKSPACE</p><h1>Make time for <em>understanding.</em></h1><p className="welcome-sub">A focused place to work through information, practise what matters, and keep what you learn.</p></div><button className="button-primary" onClick={() => navigate("understand")}><Plus size={16}/> Add a source</button></div>
                 <div className="dashboard-grid">
                   <section className="main-column">
                     <div className="section-head"><div><span className="section-overline">PICK UP WHERE YOU LEFT OFF</span><h2>Continue learning</h2></div><span className="subtle-count">{saved.length} saved {saved.length === 1 ? "source" : "sources"}</span></div>
@@ -213,12 +230,12 @@ export default function HomePage() {
                 <div className="workbench">
                   <section className="editor-panel">
                     <div className="panel-heading"><div className="panel-title-icon"><FileText size={17}/></div><div><b>{sourceName || "Untitled source"}</b><small>YOUR WORKING DOCUMENT</small></div><span className="panel-heading-spacer"/><span className="live-indicator">EDITING</span></div>
-                    <textarea value={source} onChange={e => {setSource(e.target.value);setAnalysis(null);}} maxLength={50000} placeholder="Paste lecture notes, textbook excerpts, research, or anything you want to understand..."/>
+                    <label className="sr-only" htmlFor="source-editor">Source text</label><textarea id="source-editor" name="source-text" autoComplete="off" spellCheck value={source} onChange={e => {setSource(e.target.value);setAnalysis(null);}} maxLength={50000} placeholder="Paste lecture notes, textbook excerpts, research, or anything you want to understand…"/>
                     <div className="editor-footer"><span>{wordCount.toLocaleString()} words <i/> {source.length.toLocaleString()} / 50,000 characters</span><div>
-                      <label className="button-quiet upload-label"><Upload size={14}/>{busy === "import" ? "Importing…" : "Import file"}<input type="file" accept=".txt,.md,.pdf,.docx" disabled={!!busy} onChange={e => {void importDocument(e.target.files?.[0]);e.currentTarget.value="";}}/></label>
+                      <label className="button-quiet upload-label"><Upload size={14}/>{busy === "import" ? "Importing…" : "Import file"}<input type="file" name="source-file" aria-label="Import a TXT, Markdown, PDF or DOCX file" accept=".txt,.md,.pdf,.docx" disabled={!!busy} onChange={e => {void importDocument(e.target.files?.[0]);e.currentTarget.value="";}}/></label>
                       <button className="button-primary" disabled={busy !== "" || source.trim().length < 20} onClick={analyseSource}>{busy === "analyse" ? <LoaderCircle className="spin" size={15}/> : <WandSparkles size={15}/>}Analyse source</button>
                     </div></div>
-                    {error && <p className="inline-error"><CircleHelp size={14}/>{error}</p>}
+                    {error && <p className="inline-error" role="alert"><CircleHelp size={14} aria-hidden="true"/>{error}</p>}
                   </section>
                   <aside className="workbench-aside">
                     <div className="aside-block"><span className="section-overline">SUPPORTED FORMATS</span><h3>Bring your own material.</h3><p>Import a document or paste text directly into the editor.</p><div className="format-list"><span>PDF</span><span>DOCX</span><span>TXT</span><span>MD</span></div></div>
@@ -226,7 +243,7 @@ export default function HomePage() {
                     <div className="privacy-note"><ShieldCheck size={15}/><span>Document extraction is processed by your Bookie API. Saved copies stay in this browser.</span></div>
                   </aside>
                 </div>
-                {busy === "analyse" && <div className="analysis-loading"><LoaderCircle className="spin" size={17}/> Analysing your source…</div>}
+                {busy === "analyse" && <div className="analysis-loading" role="status" aria-live="polite"><LoaderCircle className="spin" size={17} aria-hidden="true"/> Analysing your source…</div>}
                 {analysis && <section className="analysis-results">
                   <div className="results-title"><div><span className="section-overline">SOURCE REPORT</span><h2>What stands out</h2></div><span className="result-ready"><Check size={13}/> Analysis complete</span></div>
                   <div className="metrics-row">{[{label:"Words",value:analysis.statistics.words},{label:"Sentences",value:analysis.statistics.sentences},{label:"Entities",value:analysis.statistics.entities},{label:"Characters",value:analysis.statistics.characters}].map(item=><div key={item.label}><small>{item.label}</small><b>{item.value.toLocaleString()}</b></div>)}</div>
