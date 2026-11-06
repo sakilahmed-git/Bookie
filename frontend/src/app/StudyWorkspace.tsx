@@ -40,7 +40,7 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl, view = "all
   const [flipped, setFlipped] = useState<number[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [completed, setCompleted] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
+  const [bestScore, setBestScore] = useState(0);\n  const [sessionSaved, setSessionSaved] = useState(false);
 
   useEffect(() => {
     try {
@@ -143,10 +143,10 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl, view = "all
 
   function finishQuiz() {
     if (!pack || !pack.quiz.length || answeredCount !== pack.quiz.length) return;
-    const nextCompleted = completed + 1;
+    if (sessionSaved) return;\n    const nextCompleted = completed + 1;
     const nextBest = Math.max(bestScore, Math.round((score / pack.quiz.length) * 100));
     setCompleted(nextCompleted);
-    setBestScore(nextBest);
+    setBestScore(nextBest);\n    setSessionSaved(true);
     try {
       window.localStorage.setItem(PROGRESS_KEY, JSON.stringify({ completed: nextCompleted, bestScore: nextBest }));
     } catch {
@@ -226,15 +226,15 @@ export default function StudyWorkspace({ text, onTextChange, apiUrl, view = "all
             <div>
               <div className="mb-3 flex items-center justify-between"><h4 className="text-xs font-extrabold text-ink">Flashcards</h4><span className="text-[10px] text-[#778196]">Tap to reveal</span></div>
               <div className="grid gap-3 sm:grid-cols-2">
-                {pack.flashcards.map((card, index) => { const show = flipped.includes(index); return <button key={card.term + index} type="button" onClick={() => setFlipped((current) => show ? current.filter((item) => item !== index) : [...current, index])} className="focus-ring min-h-[125px] rounded-2xl border border-[#E1E5EC] bg-white p-4 text-left transition hover:border-[#CFC7F5] hover:shadow-card"><span className="text-[9px] font-bold uppercase tracking-[1.3px] text-[#6474C8]">{show ? "Source answer" : "Question"} · {index + 1}</span><p className="mt-3 text-xs font-semibold leading-6 text-[#48536B]">{show ? card.back : card.front}</p></button>; })}
+                {pack.flashcards.map((card, index) => { const show = flipped.includes(index); return <button key={card.term + index} type="button" onClick={() => setFlipped((current) => show ? current.filter((item) => item !== index) : [...current, index])} aria-pressed={show} className="focus-ring min-h-[125px] rounded-2xl border border-[#E1E5EC] bg-white p-4 text-left transition hover:border-[#CFC7F5] hover:shadow-card"><span className="text-[9px] font-bold uppercase tracking-[1.3px] text-[#6474C8]">{show ? "Source answer" : "Question"} · {index + 1}</span><p className="mt-3 text-xs font-semibold leading-6 text-[#48536B]">{show ? card.back : card.front}</p></button>; })}
               </div>
             </div>
             <div>
               <div className="mb-3 flex items-center justify-between"><h4 className="text-xs font-extrabold text-ink">Knowledge check · {pack.difficulty}</h4><span className="text-[10px] text-[#778196]">{pack.quiz.length} questions</span></div>
               <div className="space-y-3">
-                {pack.quiz.map((question, index) => <div key={index} className="rounded-2xl border border-[#E1E5EC] bg-white p-4"><p className="text-xs font-semibold leading-6 text-[#48536B]">{index + 1}. {question.question}</p><div className="mt-3 flex flex-wrap gap-2">{question.options.map((option) => { const chosen = answers[index] === option; const correct = option === question.answer; const graded = answers[index] !== undefined; return <button key={option} type="button" disabled={graded} onClick={() => setAnswers((current) => ({ ...current, [index]: option }))} className={`focus-ring rounded-lg border px-3 py-2 text-[10px] font-semibold transition ${graded && correct ? "border-[#BBDACB] bg-[#EAF5EF] text-[#237A58]" : chosen ? "border-[#E9BBC7] bg-[#FFF0F2] text-[#B23D56]" : "border-[#ECEAF3] bg-[#FBFAFD] text-[#66738E] hover:border-[#CFC7F5]"}`}>{option}</button>; })}</div>{answers[index] !== undefined && <p className="mt-3 text-[10px] leading-5 text-[#66738E]">{answers[index] === question.answer ? "Correct. " : `Answer: ${question.answer}. `}{question.explanation}</p>}</div>)}
+                {pack.quiz.map((question, index) => <div key={index} className="rounded-2xl border border-[#E1E5EC] bg-white p-4"><p className="text-xs font-semibold leading-6 text-[#48536B]">{index + 1}. {question.question}</p><div className="mt-3 flex flex-wrap gap-2">{question.options.map((option) => { const chosen = answers[index] === option; const correct = option === question.answer; const graded = answers[index] !== undefined; return <button key={option} type="button" disabled={graded} onClick={() => setAnswers((current) => ({ ...current, [index]: option }))} aria-pressed={chosen} className={`focus-ring rounded-lg border px-3 py-2 text-[10px] font-semibold transition ${graded && correct ? "border-[#BBDACB] bg-[#EAF5EF] text-[#237A58]" : chosen ? "border-[#E9BBC7] bg-[#FFF0F2] text-[#B23D56]" : "border-[#ECEAF3] bg-[#FBFAFD] text-[#66738E] hover:border-[#CFC7F5]"}`}>{option}</button>; })}</div>{answers[index] !== undefined && <p className="mt-3 text-[10px] leading-5 text-[#66738E]">{answers[index] === question.answer ? "Correct. " : `Answer: ${question.answer}. `}{question.explanation}</p>}</div>)}
               </div>
-              {pack.quiz.length > 0 && <div className="mt-3 flex flex-wrap items-center justify-between gap-3"><p className="text-[11px] font-bold text-[#34429F]">Score: {score} / {pack.quiz.length}</p><button type="button" disabled={answeredCount !== pack.quiz.length} onClick={finishQuiz} className="rounded-lg bg-[#4F5FD5] px-4 py-2 text-[10px] font-bold text-white disabled:opacity-40"><Target size={13} className="mr-1 inline" />Save session result</button></div>}
+              {pack.quiz.length > 0 && <div className="mt-3 flex flex-wrap items-center justify-between gap-3"><p className="text-[11px] font-bold text-[#34429F]">Score: {score} / {pack.quiz.length}</p><button type="button" disabled={answeredCount !== pack.quiz.length || sessionSaved} onClick={finishQuiz} className="rounded-lg bg-[#4F5FD5] px-4 py-2 text-[10px] font-bold text-white disabled:opacity-40"><Target size={13} className="mr-1 inline" />{sessionSaved ? "Session saved" : "Save session result"}</button></div>}
             </div>
             <p className="rounded-xl bg-[#FFF5E5] px-3 py-2 text-[10px] leading-5 text-[#98651F]">{pack.method} {pack.warnings.join(" ")}</p>
           </div>
